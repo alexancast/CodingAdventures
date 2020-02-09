@@ -1,0 +1,133 @@
+body, html{
+
+    height: 100%;
+    overflow: hidden;
+    font-family: Terminal;
+    background-color: black;
+    color: rgb(0, 255, 0);
+    
+
+}
+
+h3{
+    margin-left: 10%;
+}
+
+#siteHeader{
+    animation: type 4s steps(25);
+    animation-iteration-count: infinite;
+    overflow: hidden;
+    white-space: nowrap;
+
+    border-right: 4px solid rgb(0, 255, 0);
+    width: 25ch;
+}
+
+#siteHeaderPanel{
+
+    width: 32%;
+    margin: 0 auto;
+    border: none;
+
+}
+
+#headerPanel{
+
+    margin-top: 20px;
+}
+
+#contentPanel{
+
+    width: 75%;
+    padding-bottom: 5px;
+
+}
+
+#bodyPanel{
+    display: flex;
+    height: 80%;
+}
+
+#menuPanel{
+
+    width: 25%;
+    
+}
+
+.container{
+
+    text-align: left;
+    border-width: 1px;
+    border-color: rgb(0, 255, 0);
+    border-style: dashed;
+
+    margin-bottom: 5px;
+    margin-top: 5px;
+    margin-left: 5px;
+    margin-right: 5px;
+
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-left: 5px;
+    padding-top: 5px;
+}
+
+@font-face{
+    font-family: Terminal;
+    src: url(../Fonts/VCR_OSD_MONO_1.001.ttf);
+}
+
+
+@keyframes type{
+
+    0%{
+        width: 0ch;
+    }
+
+    100%{
+
+        width: 25ch; 
+
+    }
+
+}
+
+
+#footer{
+
+    text-align: center;
+    font-size: 10px;
+    margin-top: 10px;
+
+}
+
+.links{
+
+    color: rgb(0, 255, 0);
+    font-size: 12px;
+    text-decoration: none;
+    padding: 8px 16px;
+    
+}
+
+li a{
+
+    display: block;
+}
+
+li a:hover{
+    color: black;
+    background-color: rgb(0, 255, 0);
+}
+
+ul{
+    
+    list-style-type: none;
+    margin-left: 20%;
+    padding: 0;
+}
+
+#gamesPanel{
+    
+    /*text-indent: 20%;*/
+}
