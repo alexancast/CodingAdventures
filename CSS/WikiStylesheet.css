@@ -11,6 +11,7 @@ p{
     margin-left: 10%;
     margin-right: 10%;
     line-height: 1.5;
+    padding-bottom: 12px;
 }
 
 h1{
@@ -38,4 +39,12 @@ h2{
     font-weight: bold;
     text-align: center;
     font-size: small;
+    padding-bottom: 50px;
+}
+
+.formula{
+    font-style: italic;
+    font-weight: bold;
+    text-align: center;
+    font-size: large;
 }

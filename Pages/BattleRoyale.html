@@ -10,19 +10,112 @@
     <h1>Battle Royale</h1>
     <h2>Initial overview of the game</h2>
     <p>
-        * Server
-        * Character controller
-        * Weapons system
-        * Special ability system
-        * Breakable items
-     
+        This is a work in progress Battle Royale game that is supposed to have different game modes 
+        such as capture the flag and last man standing. Currently the only game mode is most kills on time.
+        My vision is that you will be able to select a hero with a different weapon and a special ability 
+        and level it up and then there will be a scoreboard constantly updating so that if you'd want to 
+        remain at the top you would have to continue playing the game. I've taken a lot of inspiration from 
+        Overwatch and still haven't found a niche for this game, or even a general theme, but my hopes are 
+        that the more I develop the game, the better picutre I'm going to have of the end result. 
+        I started the process of developing this game in January 2020 a couple of days after new years.
+        I got the idea after having played a bit of Overwatch durring the holidays and thought that it would 
+        be nice to work on a project that was multiplayer and based on shorter rounds since that would remove
+        the hassle of developing believable NPCs and the level design and story would not have to be spent as
+        much time on. Every solo game developer that has thought about creating their own game has experienced
+        that these 3 areas of development is what makes scope unmanagable. So I though that if I were to 
+        eliminate those areas, maybe I would be able to complete an entire game on my own. However I dont have much
+        experience in network programing, I've only been playing around with <a href="https://github.com/RevenantX/LiteNetLib" target="_blank">LiteNetLib</a> 
+        a bit before, and I think that I should be able to do something with it since it's basically the same as I tried before 
+        but in a larger scale.
     </p>
 
-    <embed src="../Pictures/Coffee.jpg" class="image">
+    <p>
+        When I started the new project I knew that I wanted t ohave a first person view because I liked that in Overwatch 
+        and I've also been playing a bit of Star Wars: Battlefront 2 where you have the possibility to toggle betweeen first 
+        person and over shoulder view and I strongly prefer the first person view there as well. Aditionally I also thought 
+        that I would save time on going with the first person view since I wouldn't need the entire mesh on the players character, 
+        which also meant that I would not have to animate it. So I started by adding the First person controller from the Unity Standard 
+        Assets. However I had to change this later on because I wanted to have a ragdoll effect showing when you die, and for 
+        that I need a characer mesh. So I created my own firs person controller using the characer controller component. This went 
+        pretty smooth but since I did not use Rigidbody as I was used to doing I had some issues with jumping and falling physics. 
+        However after searching the web for help, I found <a href="https://medium.com/ironequal/unity-character-controller-vs-rigidbody-a1e243591483" target="_blank">this article</a> 
+        on differences between using rigidbodies and character controllers and it helped me a lot. After tweaking the values a bit 
+        it now feels good.
+    </p>
 
-        <p class="imageText">
-            This is an image of a cappuccino on a table.
-        </p>
+    <p>
+        When creating the weapon system I wanted to make it generalized so that I would later be able to add weapons that I was currently 
+        not considering, so I made a Weapon script with a virtual method called attack which could be overridden, but still is executed by either 
+        clicking the left mouse button if the enum shoot type is set to single or hold the button if it is set to continous. I also wanted the shots 
+        to hurt more if they hit a critical body part and if the weapon was fired within a preferred range and if the range exceeded the preferred range 
+        each weapon would have a different falloff. For example a sniper rifle would do equally as much harm if it was fired from 100 m as if it was fired 
+        from 20 m while a shotgun might only make 10 % of the damage if it was fired from a 100 m but do full damage if it was fired from 20 m. 
+        I've been assuming while doing this that every character will have a max health of 100 units and each body part has a multiplier between 0-1. 
+        Meaning that if you hit another player with a shot whitin the preferred range on a body part that has the multipler value of 1, which currently 
+        only is the head, that player dies instantly. The actual damage given by a shot is calculated with the formula below and clamped between 0 - FullWeaponDamage: 
+    </p>
+
+
+    <p class="formula">
+        FullWeaponDamage - (Distance - PreferredDistance) * (Falloff / 100) * BodypartMultiplier
+    </p>
+
+    <p>
+        The special abilities pretty much work the same way as the weapons, but with other functionality. They are connected to the E key and runs a virtual method when 
+        it is pressed. For now I have only implemented one special ability which is a gerappling hook. It is a pretty basic implementation that makes a raycast from 
+        the gun to a specified distance in front of the player. If the raycast hits any object tagged as walkable, it creates a line renderer between the player and that 
+        impact point and pulls the player towards it. When the player gets within a certain distance of that point the character gets a small physics push upwards. I implemented 
+        that jump in the end beacause I found it very dificult to get on top of objects when you couldn't raycast to tehe top of them. You don't have to reach the exact point 
+        of the ray hit beacuse that is almost impossible and would probably lead to the character being dragged to that point for the rest of the game.
+    </p>
+
+    <p>
+        As stated earlier probably the largest and most important part of this game is the multiplayer and network aspect. Without multiplayer, it would not be a game at all, 
+        it would just be a simulation where you can walk around shooting dummies, which does not sound like a lot of fun. So I realized that I would have to implement 
+        the network functionality early on because that was the part I was unsure about if I could manage. So I started working on the server - client infrastructure. 
+        The server is done in C# as well, but it is a separate console project done with .NET and not Unity. I made an enum that specifies the type of the packet 
+        that is sent, so every time a packet is recieved from either the server or the client, the first thing that it checks is what type of packet it is and 
+        then sends the rest of the information to the part of the code dealing with that specific feature. For example if Player 1 shoots Player 2, the Player 1 calculates 
+        how much damage it has done, it then sends a packet with the damage to the server which tells Player 2 how much damage has been dealt. Player 2 then checks if it 
+        has died, if so, it then sends a new packet with that information to the server which then tells Player 1 that she successfully killed Player 2.
+
+
+    </p>
+
+    <embed src="../Pictures/SeverImage.PNG" class="image"></embed>
+
+    <p class="imageText">
+        Image of the console server app where you can specify how many players are expected to connect before the game starts
+    </p>
+
+    <p>
+        I want a lot of the environment to be breakable so that it seems more dynamic in a gunfight. To do so I created an interface called IBreakable 
+        which can be implemented in any object. The interface only contains one method which is to break. Currently the objects only break when they're 
+        being shot at, but in the future I want them to break from fall damage etc. I'm using the interface in example cubes for now that, have been 
+        divided into segments in blender and when the interface method is called, a rigidbody is applied to each segment and for each segment a random 
+        force between a negative pushforce from the weapon and the same absolute force, this makes the breaking of every cube seem a little different.
+
+    </p>
+
+    <embed src="../Pictures/BreakableObject.gif" class="image"></embed>
+
+    <p class="imageText">
+        This is what it looks like when the IBreakable interface is used.
+    </p>
+
+    <p>
+        As I said before, I've also added ragdoll effect to the players when they die. I did this by using Unity's ragdoll creation tool, and by default 
+        disabled the gravity and enabled kinematic of each rigidbody. When the player dies I swap these values making gravity enabled and isKinematic disabled. 
+        Then I add a force to each rigidbody pushing the player away from where the shot came from with the force set on the weapon.
+
+    </p>
+     
+    <embed src="../Pictures/Rigidbody.gif" class="image"></embed>
+
+    <p class="imageText">
+        Gif that shows how the ragdoll effect looks when a player is killed. The red skull is shown when a death packet is received from the dying player.
+    </p>
+   
     
 </body>
 
