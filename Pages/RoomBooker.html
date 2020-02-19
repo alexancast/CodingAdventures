@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="Stylesheet" href="../CSS/WikiStylesheet.css">
+</head>
+
+<body>
+    <h1>Meeting Room booking Bot </h1>
+    <h2>Introduction</h2>
+    <p>
+        I'm currently studying at the institution for computer sciences at Stockholm University. 
+        It has only been some 10 years since the institution moved to the building that it is currently 
+        in. This means that everiything is pretty fresh and modern. However there is a annoying issue. 
+        There is no library in the building, and the places where you can sit and study are too few for everyone 
+        to be able to have a seat, meaning that you have to get to school very early to get somewhere to sit and 
+        study. There is one other option though, and that is to book a meeting room. There are 24 meeting rooms 
+        in the building. 6 of them can fit 10 people and the rest fit 5 people each. These meeting rooms are 
+        however almost always booked as well. There are some rules that needs to be followed however to book 
+        a meeting room, which makes it a bit less likely for them to fill up entierly. For example, you may only 
+        book a meeting room for 4 hours per day, you need to be at least 2 people to be able to book it, and 
+        you cannot book rooms further into the future than two weeks. I do also believe that there are some 
+        restrictions about how many days per week you can book, but I couldn't find any information about that 
+        so it is possible that they removed that rule. Since the 2 weeks ahead almost always fill up instantly 
+        as soon as you are able too book I thought that I'd make a bot which retrieves information about when 
+        which rooms are available and for how long and automatically books the best room.
+    </p>
+
+    <p>
+        I dont really care which room gets booked since they are pretty much all the same and our group projects 
+        sheldom exceeds 5 people. I do however care about the time that gets booked, since the times in the evening 
+        are usually free, but there is not much use for me to book a room after 16:00. This may cause an issue 
+        when evaluating free times since I would like it to find rooms which can be booked for 4 hours in a row 
+        and if there are no ones available it should check for 3 hours etc. But if thats the only rule, it will 
+        probably always book a room between 18:00 - 22:00 since they are almost always available. So it needs to 
+        want to book a room for as long as possible and as early as possible. 
+    </p>
+
+    <embed src="../Pictures/MeetingRoomBooking.PNG" class="image"></embed>
+
+    <p class="imageText">
+        This is an example of how the rooms are usually booked. Each column represents a room, and each row 1 hour.
+    </p>
+
+    <h2>Plan</h2>
+    <p>
+        One reason I wanted to take on this project is to learn more about how to use Python. I have a very limited 
+        experience in Python since before and wanted to expand on it. I'm planning on using the module <a href="https://pypi.org/project/selenium/" target="_blank">Selenium</a>
+        for the web scraping and interaction with the school website. I also plan on translating the data from the booking table into 
+        a two dimensional matrix from where the bot can search for available spots. To view the matrix properly I'm also 
+        going to use <a href="https://pypi.org/project/numpy/" target="_blank">NumPy</a>. 
+    </p>
+    
+    <h2>Exuction</h2>
+    <p>
+        The first part of coding this project was pretty straight forward. The goal of this part was just to get to the website from
+        where schedule could be view. So I basically just used Selenium kind of like a macro program to:<br/><br/>
+
+        * Start Chrome<br/>
+        * Go to <a href="https://daisy.dsv.su.se/index.jspa" target="_blank">Daisy</a> (Stockholm University's student web site)<br/>
+        * Log in<br/>
+        * Open the meeting booking page
+    </p>
+
+    <p>
+        From here I ran into an issue. The table has a dynamic size based on where the bookings are and how long they are. 
+        I thought when entering this page that table always has the number of rooms as columns and the number of rows as 
+        hours available. Which would be perfectly translatable to a matrix. So that if someone were to book a meeting in room 
+        0 for two hours, it would look something like this, where 1 represents an occupied cell and 0 an available cell: <br/><br/>
+    </p>
+
+    <p class="formula">
+        [[1, 0, 0...],<br/>
+         [1, 0, 0...],<br/>
+         [0, 0, 0...]]
+    </p>
+
+    <p>
+        However when someone books a meeting the cell representing their first hour will expand in length and the second cells 
+        on the next row will be removed, making it look like this instead: <br/><br/>
+    </p>
+    
+    <p class="formula">
+        [[1, 0, 0...],<br/>
+         [0, 0...],<br/>
+         [0, 0, 0...]]
+    </p>
+
+    <p>
+        This means that i cannot just loop through all rows and all columns and setting the ones with blue background to 1 and 
+        the ones with white background to 0 beacuase that would result a lot of out of bounds exceptions. I could just use try/except 
+        to ignore the cells that don't exist, but that would mean only the first hour of each booking would be translated properly. 
+        Fortunatley each booked cell has an id called "rowspan" which is an interger representing how many cells its length should cover 
+        and therefore also the amount of hours booked. So for every time the bot encounters a booked cell, it will check its rowspan, 
+        and for every iteration of the rowspan it will also mark a cell on the next row as occupied. And when the bot gets to that cell 
+        it will ignore it. There is still one major issue with this though and that is that if a cell has been marked as occupied by the 
+        cell above it the website treats that cell as it doesn't exists, meaning that if the second cell is occupied, according to 
+        the booking site, the third cell would be the second cell so the website gets unsynced with the bot matrix. This is solved by 
+        keeping track of all the cells in one row that are occupied by themselves and when finding the cells in later columns, 
+        on that row, subtracting the x index by the amount of occupied cells. This will give us an algoritm that looks something like this: 
+    </p>
+
+    <p>
+
+        For every row<br/>
+        &nbsp &nbsp Set occupied counter to 0<br/>
+        &nbsp &nbsp For every column<br/>
+        &nbsp &nbsp &nbsp &nbsp If the cell[row][column] in the matrix is not occupied<br/>
+        &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp If the corresponding cell[row][column - occupied counter] on the website has a blue background<br/>
+        &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp Find its rowspan<br/>
+        &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp For every iteration of the rowspan<br/>
+        &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp Set the cell[row + rowspan iteration][column] to 1<br/>
+        &nbsp &nbsp &nbsp &nbsp else increase occupied counter by 1<br/>
+
+
+    </p>
+
+    <embed src="../Pictures/RoomBookerMatrix.png" class="image"></embed>
+    <p class="imageText">
+        This is the matrix that has been generated by the data retrieved from the website. <br/>
+        And as you can see it represents the picture table from the website displayed above very well.
+    </p>
+
+</body>
+
+</html>
